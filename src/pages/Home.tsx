@@ -1,7 +1,9 @@
 import React, { useState } from "react";
+import "../styles/Home.css";
 import MovieCard from "../components/MovieCard";
 import { useMovies } from "../hooks/useMovies";
 import { useLocalStorage } from "../hooks/useLocalStorage";
+import MovieModal from "../components/MovieModal";
 
 const Home: React.FC = () => {
   const [query, setQuery] = useState("matrix");
@@ -34,6 +36,7 @@ const Home: React.FC = () => {
     "filterRating",
     null
   );
+  const [selectedMovieId, setSelectedMovieId] = useState<string | null>(null);
 
   // Используем хук
   const { movies, loading, error } = useMovies(query);
@@ -60,8 +63,8 @@ const Home: React.FC = () => {
     .filter((movie) =>
       !filterRating ? true : Number(movie.imdbRating ?? 0) >= filterRating
     );
-  
-    const sortedMovies = [...displayedMovies];
+
+  const sortedMovies = [...displayedMovies];
 
   if (sortBy === "title") {
     sortedMovies.sort((a, b) => {
@@ -97,35 +100,37 @@ const Home: React.FC = () => {
         />
       </div>
 
-      <input
-        type="number"
-        placeholder="Год от"
-        value={filterYearFrom ?? ""}
-        onChange={(e) =>
-          setFilterYearFrom(e.target.value ? Number(e.target.value) : null)
-        }
-      ></input>
+      <div className="sort-controls">
+        <input
+          type="number"
+          placeholder="Год от"
+          value={filterYearFrom ?? ""}
+          onChange={(e) =>
+            setFilterYearFrom(e.target.value ? Number(e.target.value) : null)
+          }
+        ></input>
 
-      <input
-        type="number"
-        placeholder="Год до"
-        value={filterYearTo ?? ""}
-        onChange={(e) =>
-          setFilterYearTo(e.target.value ? Number(e.target.value) : null)
-        }
-      ></input>
+        <input
+          type="number"
+          placeholder="Год до"
+          value={filterYearTo ?? ""}
+          onChange={(e) =>
+            setFilterYearTo(e.target.value ? Number(e.target.value) : null)
+          }
+        ></input>
 
-      <input
-        type="number"
-        placeholder="Рейтинг от"
-        value={filterRating ?? ""}
-        onChange={(e) =>
-          setFilterRating(e.target.value ? Number(e.target.value) : null)
-        }
-        min={0}
-        max={10}
-        step={0.1}
-      ></input>
+        <input className="raiting"
+          type="number"
+          placeholder="Рейтинг от"
+          value={filterRating ?? ""}
+          onChange={(e) =>
+            setFilterRating(e.target.value ? Number(e.target.value) : null)
+          }
+          min={0}
+          max={10}
+          step={0.1}
+        ></input>
+      </div>
 
       <div className="sort-controls">
         <select
@@ -165,9 +170,11 @@ const Home: React.FC = () => {
           <option value="Romance">Romance</option>
         </select>
       </div>
-      <button onClick={() => setShowFavorites((prev) => !prev)}>
-        {showFavorites ? "Показать все" : "Показать избранные"}
-      </button>
+      <div className="sort-controls">
+        <button onClick={() => setShowFavorites((prev) => !prev)}>
+          {showFavorites ? "Показать все" : "Показать избранные"}
+        </button>
+      </div>
       <div className="movie-flex">
         {sortedMovies.map((movie) => (
           <MovieCard
@@ -184,9 +191,16 @@ const Home: React.FC = () => {
             rating={movie.imdbRating}
             isFavorite={favorites.includes(movie.imdbID)}
             onToggleFavorite={toggleFavorite}
+            onOpenDetails={(id) => setSelectedMovieId(id)}
           />
         ))}
       </div>
+      {selectedMovieId && (
+        <MovieModal
+          imdbID={selectedMovieId}
+          onClose={() => setSelectedMovieId(null)}
+        />
+      )}
     </div>
   );
 };
